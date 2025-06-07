@@ -1,0 +1,10 @@
+.vscode
+exe
+lib
+deps
+test/*
+!test/src
+obj
+csf
+API
+temp_*
