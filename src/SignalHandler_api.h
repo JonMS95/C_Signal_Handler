@@ -19,6 +19,8 @@ extern "C" {
 
 #define C_SIGNAL_HANDLER_API __attribute__((visibility("default")))
 
+#define SIG_HDL_GET_LAST_ERR_STR    SignalHandlerGetErrorString(SignalHandlerGetErrorCode())
+
 /***********************************/
 
 /*************************************/
@@ -27,7 +29,7 @@ extern "C" {
 
 C_SIGNAL_HANDLER_API int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask);
 C_SIGNAL_HANDLER_API int SignalHandlerGetErrorCode(void);
-C_SIGNAL_HANDLER_API const char* MutexGuardGetErrorString(const int error_code);
+C_SIGNAL_HANDLER_API const char* SignalHandlerGetErrorString(const int error_code);
 
 /*************************************/
 
