@@ -31,6 +31,7 @@ typedef enum
 {
     SIG_HDL_ERR_NULL_CB                             = 1000  ,
     SIG_HDL_ERR_ALLOCATE_CB_MAT                             ,
+    SIG_HDL_ERR_LOCK_SIG_HDL_MTX                            ,
     SIG_HDL_ERR_OUT_OF_BOUNDARIES_ERR                       ,
 
     SIG_HDL_ERR_MIN = SIG_HDL_ERR_NULL_CB                   ,
@@ -50,10 +51,31 @@ static __thread int sig_hdl_errno       = 0;
 
 static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
 {
-    "Null callback"                     ,
-    "Could not allocate callback matrix",
-    "Out of boundaries error code"      ,
+    "Null callback"                         ,
+    "Could not allocate callback matrix"    ,
+    "Could not lock signal handler mutex"   ,                
+    "Out of boundaries error code"          ,
 };
+
+static int signals_to_handle[] =
+{
+    SIGINT,    // Interrupt from keyboard (Ctrl+C)
+    SIGTERM,   // Termination request (e.g., kill)
+    SIGQUIT,   // Quit from keyboard (Ctrl+\) — creates core dump
+    SIGHUP,    // Terminal closed or controlling process died
+
+    SIGSEGV,   // Segmentation fault (invalid memory access)
+    SIGFPE,    // Floating-point exception (e.g., divide by zero)
+    SIGILL,    // Illegal instruction
+    SIGBUS,    // Bus error (misaligned or inaccessible memory)
+    SIGABRT,   // Abnormal termination (abort called)
+    SIGTRAP,   // Trap (usually for debugging breakpoints)
+    SIGSYS,    // Bad system call
+
+    SIGPIPE,   // Write to pipe/socket with no reader
+    SIGALRM    // Timer expired (from alarm() or timer APIs)
+};
+
 
 /*************************************/
 
@@ -61,7 +83,9 @@ static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
 
 __attribute__((constructor)) static void SignalHandlerLoad(void);
 __attribute__((destructor)) static void SignalHandlerUnload(void);
-static int SignalHandlerCbArrayAddSlot(void);
+static void SignalHandlerSetupSigHdl(void);
+static void SignalHandlerExecuteCallbacks(const int signal_number);
+static int SignalHandlerCbArrayAddSlot();
 
 /*************************************/
 
@@ -78,12 +102,42 @@ __attribute__((constructor)) static void SignalHandlerLoad(void)
                             p_sig_cb_mat_mtx_attr   );
 
     MTX_GRD_INIT(&sig_cb_mat_mtx);
+
+    SignalHandlerSetupSigHdl();
 }
 
 __attribute__((destructor)) static void SignalHandlerUnload(void)
 {
     MTX_GRD_DESTROY(&sig_cb_mat_mtx);
     free(cb_sig_array);
+}
+
+static void SignalHandlerSetupSigHdl(void)
+{
+    struct sigaction sa;
+    sa.sa_handler = SignalHandlerExecuteCallbacks;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    for(int i = 0; i < (sizeof(signals_to_handle) / sizeof(signals_to_handle[0])); i++)
+        sigaction(signals_to_handle[i], &sa, NULL);
+}
+
+static void SignalHandlerExecuteCallbacks(const int signal_number)
+{
+    for(int i = 0; i < cb_sig_array_size; i++)
+    {
+        if(cb_sig_array[i].sig_mask & (1 << i))
+        {
+            if(!cb_sig_array[i].cb)
+            {
+                sig_hdl_errno = SIG_HDL_ERR_NULL_CB;
+                continue;
+            }
+
+            cb_sig_array[i].cb(signal_number);
+        }
+    }
 }
 
 static int SignalHandlerCbArrayAddSlot()
@@ -107,19 +161,40 @@ static int SignalHandlerCbArrayAddSlot()
 
 int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask)
 {
-    if(!cb)
+    MTX_GRD_LOCK_SC(&sig_cb_mat_mtx, p_sig_cb_mat_mtx);
+
+    if(!p_sig_cb_mat_mtx)
     {
-        sig_hdl_errno = SIG_HDL_ERR_NULL_CB;
+        sig_hdl_errno = SIG_HDL_ERR_LOCK_SIG_HDL_MTX;
         return -1;
     }
 
-    if(SignalHandlerCbArrayAddSlot() < 0)
+    if(!cb)
+    {
+        sig_hdl_errno = SIG_HDL_ERR_NULL_CB;
         return -2;
+    }
+
+    if(SignalHandlerCbArrayAddSlot() < 0)
+        return -3;
 
     cb_sig_array[cb_sig_array_size - 1].cb          = cb;
     cb_sig_array[cb_sig_array_size - 1].sig_mask    = sig_mask;
 
     return 0;
+}
+
+int SignalHandlerGetErrorCode(void)
+{
+    return sig_hdl_errno;
+}
+
+const char* MutexGuardGetErrorString(const int error_code)
+{
+    if( (error_code < SIG_HDL_ERR_MIN) || (error_code > SIG_HDL_ERR_MAX) )
+        return error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN];
+
+    return error_str_table[error_code - SIG_HDL_ERR_MIN];
 }
 
 /*************************************/
