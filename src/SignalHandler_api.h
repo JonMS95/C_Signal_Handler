@@ -19,6 +19,8 @@ extern "C" {
 
 #define C_SIGNAL_HANDLER_API __attribute__((visibility("default")))
 
+#define SIG_HDL_ALL_SIGNALS_MASK    0xFF
+
 #define SIG_HDL_GET_LAST_ERR_STR    SignalHandlerGetErrorString(SignalHandlerGetErrorCode())
 
 /***********************************/
