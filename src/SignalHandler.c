@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include "SeverityLog_api.h"
 #include "MutexGuard_api.h"
@@ -19,6 +20,7 @@
 #define C_SIGNAL_HANDLER_ALIGNED __attribute__((aligned(sizeof(size_t))))
 
 #define SIGNAL_HANDLER_EXECUTION_MSG    "Executing signal handlers."
+#define SIGNAL_HANDLER_CATCHED_SIG_NAME "Catched %s signal."
 
 /**** Private type definitions *****/
 
@@ -53,6 +55,7 @@ static CB_SIGNAL_PAIR* cb_sig_array     = NULL;
 static size_t cb_sig_array_size         = 0;
 static MTX_GRD sig_cb_mat_mtx           = {0};
 static __thread int sig_hdl_errno       = 0;
+static int signal_handler_executed      = 0;
 
 static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
 {
@@ -139,7 +142,7 @@ static int SignalHandlerSearchSignalAux(const void *a, const void *b)
 
 static void SignalHandlerExecuteCallbacks(const int signal_number)
 {
-    SVRTY_LOG_DBG(SIGNAL_HANDLER_EXECUTION_MSG);
+    SVRTY_LOG_DBG(SIGNAL_HANDLER_CATCHED_SIG_NAME, strsignal(signal_number));
 
     int search_arr_size = (sizeof(signals_to_handle) / sizeof(signals_to_handle[0]));
     int search_arr_elem_size = sizeof(signals_to_handle[0]);
@@ -153,12 +156,19 @@ static void SignalHandlerExecuteCallbacks(const int signal_number)
     if(!p_found)
     {
         sig_hdl_errno = SIG_HDL_ERR_UNK_SIG;
-        exit(EXIT_FAILURE);
+        return;
     }
 
     int sig_idx = *p_found;
 
-    for(int i = (cb_sig_array_size - 1); i >= 0; i--)
+    if(signal_handler_executed)
+        return;
+
+    signal_handler_executed = 1;
+
+    SVRTY_LOG_DBG(SIGNAL_HANDLER_EXECUTION_MSG);
+
+    for(int i = 0; i < cb_sig_array_size; i++)
     {
         if(cb_sig_array[i].sig_mask & (1 << sig_idx))
         {
@@ -171,8 +181,6 @@ static void SignalHandlerExecuteCallbacks(const int signal_number)
             cb_sig_array[i].cb(signal_number);
         }
     }
-
-    exit(EXIT_FAILURE);
 }
 
 static int SignalHandlerCbArrayAddSlot()
@@ -180,7 +188,7 @@ static int SignalHandlerCbArrayAddSlot()
     if(!cb_sig_array)
         cb_sig_array = (CB_SIGNAL_PAIR*)calloc(1, sizeof(CB_SIGNAL_PAIR));
     else
-        cb_sig_array = (CB_SIGNAL_PAIR*)realloc(cb_sig_array, sizeof(CB_SIGNAL_PAIR));
+        cb_sig_array = (CB_SIGNAL_PAIR*)realloc(cb_sig_array, (sizeof(CB_SIGNAL_PAIR) * (cb_sig_array_size + 1)));
     
     // If cb_sig_array == NULL still, then exit.
     if(!cb_sig_array)
@@ -188,8 +196,8 @@ static int SignalHandlerCbArrayAddSlot()
         sig_hdl_errno = SIG_HDL_ERR_ALLOCATE_CB_MAT;
         return -1;
     }
-    
-    ++cb_sig_array_size;
+
+    cb_sig_array[cb_sig_array_size++] = (CB_SIGNAL_PAIR){0};
 
     return 0;
 }
