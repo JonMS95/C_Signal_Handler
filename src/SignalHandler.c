@@ -24,14 +24,14 @@
 
 /**** Private type definitions *****/
 
-// The type defined below is a callback-signal mask pair.
-// Each pair contains the handler function + a number referencing the signal to attend in each bit.
+/// @brief struct definition containing each of the members meant to be stored within cb_sig_array.
 typedef struct C_SIGNAL_HANDLER_ALIGNED
 {
     void (*cb)(const int sig_num);
     uint16_t sig_mask;
 } CB_SIGNAL_PAIR;
 
+/// @brief Library's error codes.
 typedef enum
 {
     SIG_HDL_ERR_NULL_CB                             = 1000  ,
@@ -51,11 +51,16 @@ typedef enum
 /******** Private variables ********/
 /***********************************/
 
+/// @brief Array storing (callback)<->(signal mask) pairs.
 static CB_SIGNAL_PAIR* cb_sig_array     = NULL;
+/// @brief cb_sig_array array size.
 static size_t cb_sig_array_size         = 0;
+/// @brief Mutex to manage cb_sig_array read/write operations.
 static MTX_GRD sig_cb_mat_mtx           = {0};
+/// @brief Library error storing variable (one per thread).
 static __thread int sig_hdl_errno       = 0;
 
+/// @brief Error code strings (related to mutex_guard_errno).
 static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
 {
     "Null callback"                         ,
@@ -66,6 +71,7 @@ static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
     "Out of boundaries error code"          ,
 };
 
+/// @brief Array storing all the signals that could be potentially handled. 
 static int signals_to_handle[] =
 {
     SIGHUP  ,   // Terminal closed or controlling process died
