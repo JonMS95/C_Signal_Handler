@@ -101,6 +101,7 @@ static int SignalHandlerCbArrayAddSlot();
 /******* Function definitions ********/
 /*************************************/
 
+/// @brief Executes some tasks as soon as the library is loaded.
 __attribute__((constructor)) static void SignalHandlerLoad(void)
 {
     MTX_GRD_ATTR_INIT_SC(   &sig_cb_mat_mtx         ,
@@ -114,12 +115,14 @@ __attribute__((constructor)) static void SignalHandlerLoad(void)
    SignalHandlerSetupSigHdl();
 }
 
+/// @brief Executes some tasks as soon as the library is unloaded.
 __attribute__((destructor)) static void SignalHandlerUnload(void)
 {
     MTX_GRD_DESTROY(&sig_cb_mat_mtx);
     free(cb_sig_array);
 }
 
+/// @brief Sets SignalHandlerExecuteCallbacks as the function to execute whenever a function is catched. 
 static void SignalHandlerSetupSigHdl(void)
 {
     struct sigaction sa;
@@ -131,6 +134,10 @@ static void SignalHandlerSetupSigHdl(void)
         sigaction(signals_to_handle[i], &sa, NULL);
 }
 
+/// @brief Auxiliar function to be called by bsearch.
+/// @param a Signal a
+/// @param b Signal b
+/// @return Value matching sort criterion.
 static int SignalHandlerSearchSignalAux(const void *a, const void *b)
 {
     int int_a = *(const int*)a;
@@ -139,6 +146,8 @@ static int SignalHandlerSearchSignalAux(const void *a, const void *b)
     return ( (int_a > int_b) - (int_a < int_b));
 }
 
+/// @brief Executes all the priorly stored callbacks dependeing on the catched signal.
+/// @param signal_number Catched signal number.
 static void SignalHandlerExecuteCallbacks(const int signal_number)
 {
     SVRTY_LOG_DBG(SIGNAL_HANDLER_CATCHED_SIG_NAME, signal_number, strsignal(signal_number));
@@ -177,6 +186,8 @@ static void SignalHandlerExecuteCallbacks(const int signal_number)
     }
 }
 
+/// @brief Adds a slot for a callback to be called alongside its mask to know which signals should it attend.
+/// @return 0 if succeeded, < 0 otherwise.
 static int SignalHandlerCbArrayAddSlot()
 {
     if(!cb_sig_array)
@@ -196,6 +207,10 @@ static int SignalHandlerCbArrayAddSlot()
     return 0;
 }
 
+/// @brief Adds a given callback to the list of callbacks to be executed on catched signals.
+/// @param cb Tragte callback to be executed.
+/// @param sig_mask Mask telling on which signals should the callback in question be executed.
+/// @return 0 if succeeded, < 0 otherwise.
 int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask)
 {
     MTX_GRD_LOCK_SC(&sig_cb_mat_mtx, p_sig_cb_mat_mtx);
@@ -227,11 +242,16 @@ int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_m
     return 0;
 }
 
+/// @brief Gets library's latest stored error code.
+/// @return Error code.
 int SignalHandlerGetErrorCode(void)
 {
     return sig_hdl_errno;
 }
 
+/// @brief Retrieves error-code-associated string.
+/// @param error_code Error code.
+/// @return Error describing string if any, "Out of boundaries error code" otherwise.
 const char* SignalHandlerGetErrorString(const int error_code)
 {
     if( (error_code < SIG_HDL_ERR_MIN) || (error_code > SIG_HDL_ERR_MAX) )
@@ -240,6 +260,7 @@ const char* SignalHandlerGetErrorString(const int error_code)
     return error_str_table[error_code - SIG_HDL_ERR_MIN];
 }
 
+/// @brief Erases every priorly stored callback. 
 void SignalHandlerResetCallbacks(void)
 {
     MTX_GRD_LOCK_SC(&sig_cb_mat_mtx, p_sig_cb_mat_mtx);
