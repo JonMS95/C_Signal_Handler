@@ -20,7 +20,7 @@
 #define C_SIGNAL_HANDLER_ALIGNED __attribute__((aligned(sizeof(size_t))))
 
 #define SIGNAL_HANDLER_EXECUTION_MSG    "Executing signal handlers."
-#define SIGNAL_HANDLER_CATCHED_SIG_NAME "Catched %s signal."
+#define SIGNAL_HANDLER_CATCHED_SIG_NAME "Catched <%d> signal (%s)."
 
 /**** Private type definitions *****/
 
@@ -55,7 +55,6 @@ static CB_SIGNAL_PAIR* cb_sig_array     = NULL;
 static size_t cb_sig_array_size         = 0;
 static MTX_GRD sig_cb_mat_mtx           = {0};
 static __thread int sig_hdl_errno       = 0;
-static int signal_handler_executed      = 0;
 
 static const char* error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN + 1] =
 {
@@ -106,13 +105,13 @@ __attribute__((constructor)) static void SignalHandlerLoad(void)
 {
     MTX_GRD_ATTR_INIT_SC(   &sig_cb_mat_mtx         ,
                             PTHREAD_MUTEX_ERRORCHECK,
-                            PTHREAD_PRIO_INHERIT    ,
+                            PTHREAD_PRIO_NONE       ,
                             PTHREAD_PROCESS_PRIVATE ,
                             p_sig_cb_mat_mtx_attr   );
 
     MTX_GRD_INIT(&sig_cb_mat_mtx);
 
-    SignalHandlerSetupSigHdl();
+   SignalHandlerSetupSigHdl();
 }
 
 __attribute__((destructor)) static void SignalHandlerUnload(void)
@@ -142,7 +141,7 @@ static int SignalHandlerSearchSignalAux(const void *a, const void *b)
 
 static void SignalHandlerExecuteCallbacks(const int signal_number)
 {
-    SVRTY_LOG_DBG(SIGNAL_HANDLER_CATCHED_SIG_NAME, strsignal(signal_number));
+    SVRTY_LOG_DBG(SIGNAL_HANDLER_CATCHED_SIG_NAME, signal_number, strsignal(signal_number));
 
     int search_arr_size = (sizeof(signals_to_handle) / sizeof(signals_to_handle[0]));
     int search_arr_elem_size = sizeof(signals_to_handle[0]);
@@ -160,11 +159,6 @@ static void SignalHandlerExecuteCallbacks(const int signal_number)
     }
 
     int sig_idx = *p_found;
-
-    if(signal_handler_executed)
-        return;
-
-    signal_handler_executed = 1;
 
     SVRTY_LOG_DBG(SIGNAL_HANDLER_EXECUTION_MSG);
 
@@ -244,6 +238,17 @@ const char* SignalHandlerGetErrorString(const int error_code)
         return error_str_table[SIG_HDL_ERR_MAX - SIG_HDL_ERR_MIN];
 
     return error_str_table[error_code - SIG_HDL_ERR_MIN];
+}
+
+void SignalHandlerResetCallbacks(void)
+{
+    MTX_GRD_LOCK_SC(&sig_cb_mat_mtx, p_sig_cb_mat_mtx);
+
+    if(cb_sig_array)
+    {
+        free(cb_sig_array);
+        cb_sig_array = NULL;
+    }
 }
 
 /*************************************/
