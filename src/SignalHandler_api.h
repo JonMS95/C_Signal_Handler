@@ -32,6 +32,7 @@ extern "C" {
 C_SIGNAL_HANDLER_API int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask);
 C_SIGNAL_HANDLER_API int SignalHandlerGetErrorCode(void);
 C_SIGNAL_HANDLER_API const char* SignalHandlerGetErrorString(const int error_code);
+C_SIGNAL_HANDLER_API void SignalHandlerResetCallbacks(void);
 
 /*************************************/
 
