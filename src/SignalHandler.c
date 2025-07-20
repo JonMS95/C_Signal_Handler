@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include "SeverityLog_api.h"
 #include "MutexGuard_api.h"
 #include "SignalHandler_api.h"
 
@@ -156,8 +155,6 @@ static int SignalHandlerSearchSignalAux(const void *a, const void *b)
 /// @param signal_number Catched signal number.
 static void SignalHandlerExecuteCallbacks(const int signal_number)
 {
-    SVRTY_LOG_DBG(SIGNAL_HANDLER_CATCHED_SIG_NAME, signal_number, strsignal(signal_number));
-
     int search_arr_size = (sizeof(signals_to_handle) / sizeof(signals_to_handle[0]));
     int search_arr_elem_size = sizeof(signals_to_handle[0]);
 
@@ -175,9 +172,7 @@ static void SignalHandlerExecuteCallbacks(const int signal_number)
 
     int sig_idx = *p_found;
 
-    SVRTY_LOG_DBG(SIGNAL_HANDLER_EXECUTION_MSG);
-
-    for(int i = 0; i < cb_sig_array_size; i++)
+    for(int i = (cb_sig_array_size - 1); i >= 0; i--)
     {
         if(cb_sig_array[i].sig_mask & (1 << sig_idx))
         {
