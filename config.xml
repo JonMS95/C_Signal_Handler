@@ -3,7 +3,7 @@
     <Project_data
         version_major="1"
         version_minor="0"
-        version_mode="DEBUG"
+        version_mode="RELEASE"
         URL="https://github.com/JonMS95/C_Signal_Handler"
         type="library"
         language="C"
@@ -43,18 +43,11 @@
             lib_name="pthread"
             package="libc6-dev"
         />
-        <C_Severity_Log
-            version_major="2"
-            version_minor="2"
-            version_mode="RELEASE"
-            local_path="~/C_Severity_Log"
-            URL="https://github.com/JonMS95/C_Severity_Log"
-        />
         <C_Mutex_Guard
             version_major="1"
-            version_minor="0"
+            version_minor="1"
             version_mode="RELEASE"
-            local_path="~/C_Mutex_Guard"
+            local_path="~/Desktop/scripts/C/C_Mutex_Guard"
             URL="https://github.com/JonMS95/C_Mutex_Guard"
         />
     </deps>
@@ -80,22 +73,22 @@
             <C_Signal_Handler
                 version_major="1"
                 version_minor="0"
-                version_mode="DEBUG"
+                version_mode="RELEASE"
                 local_path="."
                 URL="https://github.com/JonMS95/C_Signal_Handler"
             />
             <C_Severity_Log
                 version_major="2"
-                version_minor="2"
+                version_minor="3"
                 version_mode="RELEASE"
-                local_path="~/C_Severity_Log"
+                local_path="~/Desktop/scripts/C/C_Severity_Log"
                 URL="https://github.com/JonMS95/C_Severity_Log"
             />
             <C_Mutex_Guard
                 version_major="1"
-                version_minor="0"
+                version_minor="1"
                 version_mode="RELEASE"
-                local_path="~/C_Mutex_Guard"
+                local_path="~/Desktop/scripts/C/C_Mutex_Guard"
                 URL="https://github.com/JonMS95/C_Mutex_Guard"
             />
         </deps>
