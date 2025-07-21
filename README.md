@@ -1,6 +1,4 @@
-# C_Server_Socket: a server socket written in C 🔌
-TBD
-
+# C_Signal_Handler: a single handler to rule them all
 
 ## Table of contents 🗂️
 * [**Introduction** 📑](#introduction)
@@ -15,14 +13,13 @@ TBD
 
 
 ## Introduction <a id="introduction"></a> 📑
-TBD
+When dealing with multiple signal handlers in a project, it may happen that a signal-handling function is overwritten by another, leading the priorly existing one not to be ever executed.
+For these situations to be somehow avoided, a signal handler shall be created. Such handler should register every callback to be executed as well as a mask to indicate which signals should it handle.
 
 By now, it has been designed for it to be run on Linux distros (such as [Ubuntu](https://ubuntu.com/)). The resulting library is a *.so* file alongside a C language header (*.h*) file.
 
 
 ## Features <a id="features"></a> 🌟
-TBD
-
 In order to get some knowledge about how to use the library alongside its options, go to [Usage](#usage).
 
 
@@ -44,7 +41,7 @@ In the following list, the minimum versions required (if any) by the library are
 [git-link]:        https://git-scm.com/
 [xmlstarlet-link]: https://xmlstar.sourceforge.net/
 
-Except for Make, Bash and OpenSSL, the latest version of each of the remaining dependencies will be installed automatically if they have not been found beforehand. 
+Except for Make and Bash, the latest version of each of the remaining dependencies will be installed automatically if they have not been found beforehand. 
 
 In any case, installing **_Xmlstarlet_** before executing any of the commands below is strongly recommended. Otherwise, it can lead to error since make file
 contains some calls to it at the top. If that happens, just repeat the process (Xmlstarlet would have been already installed).
@@ -55,7 +52,7 @@ On top of the ones listed above, there are some *JMS* dependencies (libraries th
 | Dependency                                                              | Purpose                                  |
 | :---------------------------------------------------------------------- | :--------------------------------------- |
 | [C_Common_shell_files](https://github.com/JonMS95/C_Common_shell_files) | Process [configuration file](config.xml) |
-| [C_Severity_Log](https://github.com/JonMS95/C_Severity_Log)             | Show logs                                |
+| [C_Severity_Log](https://github.com/JonMS95/C_Severity_Log)             | Show logs during testing stage           |
 | [C_Mutex_Guard](https://github.com/JonMS95/C_Mutex_Guard)               | Manage mutexes safely                    |
 
 
@@ -112,8 +109,30 @@ Again, the one below is the path to the generated executable file:
 
 
 ## Usage <a id="usage"></a> 🖱️
-The following is the main server socket function prototype as found in the **_header API file_** (_/path/to/repos/C_Signal_Handler/API/vM_m/inc/SignalHandler_api.h_) or in the [repo file](src/SignalHandler_api.h).
+Store new signal-handling function:
+'''c
+C_SIGNAL_HANDLER_API int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask);
+'''
 
+Erase every priorly installed callback:
+'''c
+C_SIGNAL_HANDLER_API void SignalHandlerResetCallbacks(void);
+'''
+
+Get error code:
+'''c
+C_SIGNAL_HANDLER_API int SignalHandlerGetErrorCode(void);
+'''
+
+Get error string (given an error code):
+'''c
+C_SIGNAL_HANDLER_API const char* SignalHandlerGetErrorString(const int error_code);
+'''
+
+Get latest error string (defined macro):
+'''c
+SIG_HDL_GET_LAST_ERR_STR
+'''
 
 ## To do <a id="to-do"></a> ☑️
 
