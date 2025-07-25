@@ -47,7 +47,7 @@
             version_major="1"
             version_minor="1"
             version_mode="RELEASE"
-            local_path="~/Desktop/scripts/C/C_Mutex_Guard"
+            local_path="~/C_Mutex_Guard"
             URL="https://github.com/JonMS95/C_Mutex_Guard"
         />
     </deps>
@@ -81,14 +81,14 @@
                 version_major="2"
                 version_minor="3"
                 version_mode="RELEASE"
-                local_path="~/Desktop/scripts/C/C_Severity_Log"
+                local_path="~/C_Severity_Log"
                 URL="https://github.com/JonMS95/C_Severity_Log"
             />
             <C_Mutex_Guard
                 version_major="1"
                 version_minor="1"
                 version_mode="RELEASE"
-                local_path="~/Desktop/scripts/C/C_Mutex_Guard"
+                local_path="~/C_Mutex_Guard"
                 URL="https://github.com/JonMS95/C_Mutex_Guard"
             />
         </deps>
