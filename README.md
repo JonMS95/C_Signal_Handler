@@ -34,8 +34,8 @@ In the following list, the minimum versions required (if any) by the library are
 | [Make][make-link]            | Execute make file                       |4.1             |
 | [Git][git-link]              | Download GitHub dependencies            |2.34.1          |
 | [Xmlstarlet][xmlstarlet-link]| Parse [configuration file](config.xml)  |1.6.1           |
+| [CUnit][cunit-link]          | Unit tests                              |2.1-3           |
 | [libc][libc-link]            | Manage POSIX threads                    |2.35            |
-| [binutils][binutils-link]    | Retrieve line and function from address |2.38            |
 
 [gcc-link]:        https://gcc.gnu.org/
 [bash-link]:       https://www.gnu.org/software/bash/
