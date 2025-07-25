@@ -34,12 +34,16 @@ In the following list, the minimum versions required (if any) by the library are
 | [Make][make-link]            | Execute make file                       |4.1             |
 | [Git][git-link]              | Download GitHub dependencies            |2.34.1          |
 | [Xmlstarlet][xmlstarlet-link]| Parse [configuration file](config.xml)  |1.6.1           |
+| [libc][libc-link]            | Manage POSIX threads                    |2.35            |
+| [binutils][binutils-link]    | Retrieve line and function from address |2.38            |
 
 [gcc-link]:        https://gcc.gnu.org/
 [bash-link]:       https://www.gnu.org/software/bash/
 [make-link]:       https://www.gnu.org/software/make/
 [git-link]:        https://git-scm.com/
 [xmlstarlet-link]: https://xmlstar.sourceforge.net/
+[cunit-link]:      https://cunit.sourceforge.net/
+[libc-link]:       https://www.gnu.org/software/libc/
 
 Except for Make and Bash, the latest version of each of the remaining dependencies will be installed automatically if they have not been found beforehand. 
 
@@ -113,6 +117,7 @@ Store new signal-handling function:
 '''c
 C_SIGNAL_HANDLER_API int SignalHandlerAddCallback(void (*cb)(const int sig_num), const uint16_t sig_mask);
 '''
+Where mask tells which signals should be attended by the provided callback function.
 
 Erase every priorly installed callback:
 '''c
@@ -135,7 +140,7 @@ SIG_HDL_GET_LAST_ERR_STR
 '''
 
 ## To do <a id="to-do"></a> ☑️
-
+Nothing to be done by now.
 
 ## Related Documents <a id="related-documents"></a> 🗄️
 * [LICENSE](LICENSE)
